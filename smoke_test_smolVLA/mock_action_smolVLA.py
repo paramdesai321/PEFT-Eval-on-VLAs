@@ -8,7 +8,10 @@ device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 model_id = "lerobot/smolvla_base"
 
 # Load model & metadata
-policy = SmolVLAPolicy.from_pretrained(model_id).to(device)
+policy = SmolVLAPolicy.from_pretrained(model_id).to(
+    device=device,
+    dtype=torch.float32
+)
 policy.eval()
 
 dataset_meta = LeRobotDatasetMetadata("lerobot/svla_so100_stacking")
