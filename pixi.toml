@@ -5,10 +5,10 @@ platforms = ["linux-64", "osx-arm64"]
 version = "0.1.0"
 
 [dependencies]
-python = "3.11.*"
+python = "3.12.*"
 ipykernel = ">=6,<8"
 jupyterlab = ">=4,<5"
-numpy = ">=1.26,<3"
+numpy = ">=1.26,<2.3"
 pandas = ">=2,<4"
 matplotlib = ">=3.8,<4"
 ipywidgets = ">=8.1,<9"
@@ -17,6 +17,11 @@ pip = ">=26.2.2,<27"
 pytorch = ">=2.14.1,<3"
 torchvision = ">=0.29.1,<0.30"
 datetime = ">=6.0,<7"
+
+[pypi-dependencies]
+lerobot = { git = "https://github.com/huggingface/lerobot.git", extras = [
+  "smolvla",
+] }
 
 [feature.cpu.target.linux-64.dependencies]
 pytorch = ">=2.5,<3"
@@ -29,6 +34,9 @@ pytorch = ">=2.5,<3"
 
 [tasks]
 lab = "jupyter lab"
+test-smolvla = "python3 smoke_test_smolVLA/test_smolvla.py"
+test-tensor-batching = "python3 smoke_test_smolVLA/tensor_batching_smolVLA.py"
+test-mock-action-smolvla = "python3 smoke_test_smolVLA/mock_action_smolVLA.py"
 
 [environments]
 default = ["cpu"]
