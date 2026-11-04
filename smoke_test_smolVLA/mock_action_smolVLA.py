@@ -4,7 +4,8 @@ from lerobot.policies.smolvla import SmolVLAPolicy
 from lerobot.policies import make_pre_post_processors
 from lerobot.policies.utils import build_inference_frame, make_robot_action
 import numpy as np
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+from utils.device_configuration import get_device
+device = get_device()
 model_id = "lerobot/smolvla_base"
 
 # Load model & metadata
