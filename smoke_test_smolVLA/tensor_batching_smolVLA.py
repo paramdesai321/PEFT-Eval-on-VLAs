@@ -1,7 +1,8 @@
 import torch
 from lerobot.policies.smolvla import SmolVLAPolicy
+from utils.device_configuration import get_device
 
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+device = get_device()
 
 policy = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base").to(device)
 policy.eval()

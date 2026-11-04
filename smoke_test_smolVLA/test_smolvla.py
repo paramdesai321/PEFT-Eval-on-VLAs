@@ -1,8 +1,9 @@
 import torch
 from lerobot.policies.smolvla import SmolVLAPolicy
+# Local project imports
+from utils.device_configuration import get_device
+device = get_device()
 
-# Use Apple Silicon GPU ('mps') or CPU
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 print(f"Using device: {device}")
 
 # Load model weights from Hugging Face

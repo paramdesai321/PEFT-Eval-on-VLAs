@@ -1,3 +1,18 @@
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing and linting
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

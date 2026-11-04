@@ -26,7 +26,6 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
   "smolvla",
   "dataset",
 ] }
-peft = ">=0.21.2, <0.22"
 
 [feature.cpu.target.linux-64.dependencies]
 pytorch = ">=2.5,<3"
@@ -37,11 +36,12 @@ torch = ">=2.5"
 [feature.macos.target.osx-arm64.dependencies]
 pytorch = ">=2.5,<3"
 
+
 [tasks]
-lab = "jupyter lab"
-test-smolvla = "python3 smoke_test_smolVLA/test_smolvla.py"
-test-tensor-batching = "python3 smoke_test_smolVLA/tensor_batching_smolVLA.py"
-test-mock-action-smolvla = "python3 smoke_test_smolVLA/mock_action_smolVLA.py"
+jupyterlab = "jupyter lab"
+test-smolvla = "python3 -m smoke_test_smolVLA.test_smolvla"
+test-tensor-batching = "python3 -m smoke_test_smolVLA.tensor_batching_smolVLA"
+test-mock-action-smolvla = "python3 -m smoke_test_smolVLA.mock_action_smolVLA"
 
 [environments]
 default = ["cpu"]
