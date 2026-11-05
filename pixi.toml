@@ -1,7 +1,11 @@
 [workspace]
 channels = ["conda-forge"]
 name = "deep-learning-projects"
-platforms = ["linux-64", "osx-arm64"]
+platforms = [
+  "osx-64",
+  "linux-64",
+  { name = "linux-64-nvidia", platform = "linux-64", cuda = "12.4" },
+]
 version = "0.1.0"
 
 [dependencies]
@@ -14,29 +18,29 @@ matplotlib = ">=3.8,<4"
 ipywidgets = ">=8.1,<9"
 pixi-kernel = ">=0.7,<0.8"
 pip = ">=26.2.2,<27"
-pytorch = ">=2.14.1,<3"
-torchvision = ">=0.29.1,<0.30"
 datetime = ">=6.0,<7"
-peft = ">=0.21.2,<0.22"
 
 [constraints]
 fsspec = "<=2026.7.0"
 
 [pypi-dependencies]
+peft = ">=0.21.2,<0.22"
 lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
   "smolvla",
   "dataset",
 ] }
 
-[feature.cpu.target.linux-64.dependencies]
-pytorch = ">=2.5,<3"
+# --- CPU Feature ---
+[feature.cpu]
+platforms = ["linux-64"]
 
-[feature.cuda.target.linux-64.pypi-dependencies]
-torch = ">=2.5"
+[feature.cpu.pypi-dependencies]
+torch = ">=2.5,<3"
+torchvision = ">=0.20.0,<0.30"
 
-[feature.macos.target.osx-arm64.dependencies]
-pytorch = ">=2.5,<3"
-
+# --- CUDA Feature ---
+[feature.cuda]
+platforms = ["linux-64-nvidia"]
 
 [tasks]
 jupyterlab = "jupyter lab"
@@ -46,5 +50,10 @@ test-mock-action-smolvla = "python3 -m smoke_test_smolVLA.mock_action_smolVLA"
 
 [environments]
 default = ["cpu"]
-cuda = ["cuda"]
-macos = ["macos"]
+
+[environments.cuda]
+features = ["cuda"]
+
+[environments.cuda.pypi-dependencies]
+peft = ">=0.21.2, <0.22"
+torch = ">=2.15.0, <3"
