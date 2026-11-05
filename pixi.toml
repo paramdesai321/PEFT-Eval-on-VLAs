@@ -24,20 +24,10 @@ datetime = ">=6.0,<7"
 [constraints]
 fsspec = "<=2026.7.0"
 
-# [pypi-dependencies]
-# peft = ">=0.21.2,<0.22"
-# lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
-#   "smolvla",
-#   "dataset",
-# ] }
+# --- Shared PyPI Dependencies ---
+[pypi-dependencies]
+peft = ">=0.21.2, <0.22"
 
-
-# --- CUDA Feature ---
-[feature.cuda]
-platforms = ["linux-64-nvidia"]
-
-[feature.macos]
-platforms = ["osx-arm64"]
 
 [tasks]
 jupyterlab = "jupyter lab"
@@ -45,14 +35,15 @@ test-smolvla = "python3 -m smoke_test_smolVLA.test_smolvla"
 test-tensor-batching = "python3 -m smoke_test_smolVLA.tensor_batching_smolVLA"
 test-mock-action-smolvla = "python3 -m smoke_test_smolVLA.mock_action_smolVLA"
 
-[environments]
-default = ["macos"]
+
+# --- CUDA Feature ---
+[feature.cuda]
+platforms = ["linux-64-nvidia"]
 
 [environments.cuda]
 features = ["cuda"]
 
 [feature.cuda.pypi-dependencies]
-peft = ">=0.21.2, <0.22"
 torch = ">=2.15.0, <3"
 lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
   "smolvla",
@@ -60,10 +51,18 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
 ] }
 
 
+# MacOS Feature
+
+[feature.macos]
+platforms = ["osx-arm64"]
+
 [feature.macos.pypi-dependencies]
-peft = ">=0.21.2, <0.22"
 torch = ">=2.10.0, <3"
 lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
   "smolvla",
   "dataset",
 ] }
+
+
+[environments]
+default = ["macos"]
