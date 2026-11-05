@@ -40,9 +40,6 @@ test-mock-action-smolvla = "python3 -m smoke_test_smolVLA.mock_action_smolVLA"
 [feature.cuda]
 platforms = ["linux-64-nvidia"]
 
-[environments.cuda]
-features = ["cuda"]
-
 [feature.cuda.pypi-dependencies]
 torch = ">=2.15.0, <3"
 lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
@@ -52,7 +49,6 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
 
 
 # MacOS Feature
-
 [feature.macos]
 platforms = ["osx-arm64"]
 
@@ -66,3 +62,4 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
 
 [environments]
 default = ["macos"]
+cuda = ["cuda"]
