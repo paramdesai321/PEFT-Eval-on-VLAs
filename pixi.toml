@@ -2,11 +2,12 @@
 channels = ["conda-forge"]
 name = "deep-learning-projects"
 platforms = [
-  "osx-64",
-  "linux-64",
+  "osx-arm64",
   { name = "linux-64-nvidia", platform = "linux-64", cuda = "12.4" },
 ]
 version = "0.1.0"
+[feature.macos.activation.env]
+KMP_DUPLICATE_LIB_OK = "TRUE"
 
 [dependencies]
 python = "3.12.*"
@@ -23,24 +24,20 @@ datetime = ">=6.0,<7"
 [constraints]
 fsspec = "<=2026.7.0"
 
-[pypi-dependencies]
-peft = ">=0.21.2,<0.22"
-lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
-  "smolvla",
-  "dataset",
-] }
+# [pypi-dependencies]
+# peft = ">=0.21.2,<0.22"
+# lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
+#   "smolvla",
+#   "dataset",
+# ] }
 
-# --- CPU Feature ---
-[feature.cpu]
-platforms = ["linux-64"]
-
-[feature.cpu.pypi-dependencies]
-torch = ">=2.5,<3"
-torchvision = ">=0.20.0,<0.30"
 
 # --- CUDA Feature ---
 [feature.cuda]
 platforms = ["linux-64-nvidia"]
+
+[feature.macos]
+platforms = ["osx-arm64"]
 
 [tasks]
 jupyterlab = "jupyter lab"
@@ -49,11 +46,24 @@ test-tensor-batching = "python3 -m smoke_test_smolVLA.tensor_batching_smolVLA"
 test-mock-action-smolvla = "python3 -m smoke_test_smolVLA.mock_action_smolVLA"
 
 [environments]
-default = ["cpu"]
+default = ["macos"]
 
 [environments.cuda]
 features = ["cuda"]
 
-[environments.cuda.pypi-dependencies]
+[feature.cuda.pypi-dependencies]
 peft = ">=0.21.2, <0.22"
 torch = ">=2.15.0, <3"
+lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
+  "smolvla",
+  "dataset",
+] }
+
+
+[feature.macos.pypi-dependencies]
+peft = ">=0.21.2, <0.22"
+torch = ">=2.10.0, <3"
+lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
+  "smolvla",
+  "dataset",
+] }
