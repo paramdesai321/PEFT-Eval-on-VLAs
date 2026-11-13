@@ -32,9 +32,11 @@ peft = ">=0.21.2, <0.22"
 
 [tasks]
 jupyterlab = "jupyter lab"
-test-smolvla = "python3 -m smoke_test_smolVLA.test_smolvla"
-test-tensor-batching = "python3 -m smoke_test_smolVLA.tensor_batching_smolVLA"
-test-mock-action-smolvla = "python3 -m smoke_test_smolVLA.mock_action_smolVLA"
+# test-smolvla = "python3 -m smoke_test_smolVLA.test_smolvla"
+# test-tensor-batching = "python3 -m smoke_test_smolVLA.tensor_batching_smolVLA"
+# test-mock-action-smolvla = "python3 -m smoke_test_smolVLA.mock_action_smolVLA"
+test-smol-vla-peft = "python3 -m smolVLA_PEFT"
+test-smol-vla-peft2 = "python3 -m smolVLA_PEFT_ver2"
 
 
 # --- CUDA Feature ---
