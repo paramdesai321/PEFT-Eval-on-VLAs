@@ -20,6 +20,7 @@ ipywidgets = ">=8.1,<9"
 pixi-kernel = ">=0.7,<0.8"
 pip = ">=26.2.2,<27"
 datetime = ">=6.0,<7"
+ffmpeg = ">=7,<=8"
 
 [constraints]
 fsspec = "<=2026.7.0"
@@ -53,7 +54,9 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
 platforms = ["osx-arm64"]
 
 [feature.macos.pypi-dependencies]
-torch = ">=2.10.0, <3"
+# torch = ">=2.10.0, <3"
+torch = "==2.10.0"
+torchcodec = "==0.10.*"
 lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
   "smolvla",
   "dataset",
