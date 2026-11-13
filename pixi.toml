@@ -37,7 +37,8 @@ jupyterlab = "jupyter lab"
 # test-mock-action-smolvla = "python3 -m smoke_test_smolVLA.mock_action_smolVLA"
 test-smol-vla-peft = "python3 -m smolVLA_PEFT"
 test-smol-vla-peft2 = "python3 -m smolVLA_PEFT_ver2"
-
+# mainly for hive machine
+register-cuda-kernel = 'python3 -m ipykernel install --user --name="ecs-271" --display-name="Python (Pixi CUDA)"'
 
 # --- CUDA Feature ---
 [feature.cuda]
