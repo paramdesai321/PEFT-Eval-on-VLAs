@@ -3,7 +3,7 @@ channels = ["conda-forge"]
 name = "deep-learning-projects"
 platforms = [
   "osx-arm64",
-  { name = "linux-64-nvidia", platform = "linux-64", cuda = "12.4" },
+  { name = "linux-64-nvidia", platform = "linux-64", cuda = "11.7.1" },
 ]
 version = "0.1.0"
 [feature.macos.activation.env]
