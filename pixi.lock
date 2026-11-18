@@ -4,13 +4,13 @@ platforms:
   subdir: linux-64
   virtual-packages:
   - __cuda=11.7.1
-  - __unix=0
+  - __unix=0=0
   - __linux=4.18
   - __glibc=2.28
   - __archspec=0=x86_64
 - name: osx-arm64
   virtual-packages:
-  - __unix=0
+  - __unix=0=0
   - __osx=13.0
   - __archspec=0=m1
 environments:
@@ -183,6 +183,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/qt6-main-6.11.3-pl5321hcf69127_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/readline-8.3-hd6e31c0_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/rpds-py-2026.9.1-py312hc767a74_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.17.5-hf19af3b_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/sdl2-2.32.56-hee9eb32_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/sdl3-3.4.20-h8e1bbd5_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/shaderc-2025.4-h3e344bc_0.conda
@@ -659,6 +660,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/qhull-2020.2-h48a1422_6.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/readline-8.3-h8b90a29_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/rpds-py-2026.9.1-py312ha80e978_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruff-0.17.5-ha19a7bb_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/sdl2-2.32.56-ha89b795_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/sdl3-3.4.20-h8ebb890_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/shaderc-2025.4-h1a5098f_0.conda
@@ -1016,7 +1018,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/debugpy?source=compressed-mapping
+  - pkg:pypi/debugpy?source=hash-mapping
   run_exports: {}
   size: 2842039
   timestamp: 1793558459911
@@ -1132,7 +1134,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/fonttools?source=compressed-mapping
+  - pkg:pypi/fonttools?source=hash-mapping
   run_exports: {}
   size: 3234738
   timestamp: 1793164688563
@@ -2892,7 +2894,7 @@ packages:
   license: BSD-3-Clause
   license_family: BSD
   purls:
-  - pkg:pypi/markupsafe?source=compressed-mapping
+  - pkg:pypi/markupsafe?source=hash-mapping
   run_exports: {}
   size: 27696
   timestamp: 1793707103879
@@ -3310,7 +3312,8 @@ packages:
   license: LGPL-3.0-only
   license_family: LGPL
   purls:
-  - pkg:pypi/pyside6?source=compressed-mapping
+  - pkg:pypi/pyside6?source=hash-mapping
+  - pkg:pypi/shiboken6?source=hash-mapping
   run_exports: {}
   size: 13945736
   timestamp: 1793476638229
@@ -3379,7 +3382,7 @@ packages:
   license: BSD-3-Clause
   license_family: BSD
   purls:
-  - pkg:pypi/pyzmq?source=compressed-mapping
+  - pkg:pypi/pyzmq?source=hash-mapping
   run_exports: {}
   size: 216444
   timestamp: 1793791645017
@@ -3505,6 +3508,20 @@ packages:
   run_exports: {}
   size: 303011
   timestamp: 1791202435434
+- conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.17.5-hf19af3b_1.conda
+  sha256: 3821fb7ad80d2543b887be8f739e9c6abc03fd87108ee86b7ab401f3fd67ab40
+  md5: 9d18101313ac89f8ec909852403d208f
+  depends:
+  - libgcc >=15
+  - __glibc >=2.17,<3.0.a0
+  constrains:
+  - __glibc >=2.17
+  license: MIT
+  purls:
+  - pkg:pypi/ruff?source=compressed-mapping
+  run_exports: {}
+  size: 8940686
+  timestamp: 1794928860317
 - conda: https://conda.anaconda.org/conda-forge/linux-64/sdl2-2.32.56-hee9eb32_1.conda
   sha256: 2d4486899f0f099a4ed061d1502895fe65006812e64b896a95a425bad7d83088
   md5: 7704b9e763352ec181dc9e11d2d02912
@@ -7801,6 +7818,19 @@ packages:
   run_exports: {}
   size: 286627
   timestamp: 1791202361450
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruff-0.17.5-ha19a7bb_1.conda
+  sha256: b6a4f1c99d7d0cdd65b913b30f60525216b8445c6f78cbf2febb49ca2f6efbc2
+  md5: b7283cb3cb4f8580341ef422a9d18fac
+  depends:
+  - __osx >=11.0
+  constrains:
+  - __osx >=11.0
+  license: MIT
+  purls:
+  - pkg:pypi/ruff?source=compressed-mapping
+  run_exports: {}
+  size: 8138400
+  timestamp: 1794928878826
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/sdl2-2.32.56-ha89b795_1.conda
   sha256: 69d8a049cc99f4eddde8faf2f16a1392774c1ab86beef460234f574f0d31a10e
   md5: b1b315cacc055793a1cdf90a8ac3d2db

@@ -1,14 +1,13 @@
+import os
+import warnings
+
 import torch
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 from lerobot.policies.factory import make_pre_post_processors
 
-from peft import LoraConfig, get_peft_model, inject_adapter_in_model
-
 # Swap this import per-policy
 from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
-
-import warnings
-import os
+from peft import LoraConfig, inject_adapter_in_model
 
 # Suppress all python warnings and torch deprecation alerts
 warnings.filterwarnings("ignore")
