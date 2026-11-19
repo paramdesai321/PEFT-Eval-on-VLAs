@@ -133,6 +133,9 @@ for step, batch in enumerate(dataloader):
             ground_truth = ground_truth[:, : pred.shape[-1]]  # match action dim
         else:
             pred = final_actions
+
+
+
             ground_truth = ground_truth[:, : pred.shape[-1]]
 
         mean_squared_error = torch.mean((pred - ground_truth) ** 2).item()
@@ -143,6 +146,9 @@ for step, batch in enumerate(dataloader):
     print(
         f"Batch {step + 1} | MSE: {mse:.5f} | L1: {l1:.5f} "
         f"| running MSE: {np.mean(mean_squared_error):.5f}"
+
+
+
     )
 
     if step >= num_batches_iteration - 1:
