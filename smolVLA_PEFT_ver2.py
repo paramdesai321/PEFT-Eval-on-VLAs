@@ -82,7 +82,8 @@ dataloader = DataLoader(
 policy_input_keys = list(policy.config.input_features.keys())
 
 num_batches_iteration = 5
-mean_squared_error, l1_loss = [], []
+mean_squared_error_losses = []
+l1_losses = []
 for step, batch in enumerate(dataloader):
     # Move tensor features in batch to target device
     device_batch = {}
@@ -119,6 +120,7 @@ for step, batch in enumerate(dataloader):
         f"Batch {step + 1} | Input Batch Size: {current_batch_size} | Action Output Shape: {final_actions.shape}"
     )
 
+    # Accumulate Statistics Across the dataset
     # Ground-truth actions from the dataset
     ground_truth_actions = batch.get("action")
     if ground_truth_actions is not None:
@@ -133,10 +135,10 @@ for step, batch in enumerate(dataloader):
             pred = final_actions
             ground_truth = ground_truth[:, : pred.shape[-1]]
 
-        mse = torch.mean((pred - ground_truth) ** 2).item()
-        l1 = torch.mean(torch.abs(pred - ground_truth)).item()
-        mean_squared_error.append(mse)
-        l1_loss.append(l1)
+        mean_squared_error = torch.mean((pred - ground_truth) ** 2).item()
+        l1_losses = torch.mean(torch.abs(pred - ground_truth)).item()
+        mean_squared_error_losses.append(mean_squared_error)
+        l1_losses.append(l1)
 
     print(
         f"Batch {step + 1} | MSE: {mse:.5f} | L1: {l1:.5f} "
@@ -148,6 +150,6 @@ for step, batch in enumerate(dataloader):
 
 # Inference Statistics
 print("\n--- Inference Successful ---")
-print(f"\nOffline metrics over {len(mean_squared_error)} batches:")
-print(f"  Mean MSE Loss: {np.mean(mean_squared_error):.5f}")
-print(f"  Mean L1 Loss : {np.mean(l1_loss):.5f}")
+print(f"\nOffline metrics over {len(mean_squared_error_losses)} batches:")
+print(f"  Mean Squared Error Loss: {np.mean(mean_squared_error_losses):.5f}")
+print(f"  Mean Absolute Error Loss : {np.mean(l1_losses):.5f}")

@@ -49,6 +49,7 @@ torch = ">=2.15.0, <3"
 lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
   "smolvla",
   "dataset",
+  "libero",
 ] }
 
 
@@ -63,9 +64,10 @@ torchcodec = "==0.10.*"
 lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
   "smolvla",
   "dataset",
+  # NOTE: lerobot is not compatible natively with macos, need to run in docker container, or on linux
 ] }
 
 
 [environments]
-default = ["macos"]
-cuda = ["cuda"]
+default = ["cuda"]
+macos = ["macos"]

@@ -21,7 +21,6 @@ pixi-kernel = ">=0.7,<0.8"
 pip = ">=26.2.2,<27"
 datetime = ">=6.0,<7"
 ffmpeg = ">=7,<=8"
-ruff = ">=0.17.5,<0.18"
 
 [constraints]
 fsspec = "<=2026.7.0"
@@ -32,7 +31,7 @@ peft = ">=0.21.2, <0.22"
 
 
 [tasks]
-# Run Code
+jupyterlab = "jupyter lab"
 # test-smolvla = "python3 -m smoke_test_smolVLA.test_smolvla"
 # test-tensor-batching = "python3 -m smoke_test_smolVLA.tensor_batching_smolVLA"
 # test-mock-action-smolvla = "python3 -m smoke_test_smolVLA.mock_action_smolVLA"
@@ -40,11 +39,6 @@ test-smol-vla-peft = "python3 -m smolVLA_PEFT"
 test-smol-vla-peft2 = "python3 -m smolVLA_PEFT_ver2"
 # mainly for hive machine
 register-cuda-kernel = 'python3 -m ipykernel install --user --name="ecs-271" --display-name="Python (Pixi CUDA)"'
-
-# Utility Tasks
-lint = "ruff check ."
-format = "ruff format ."
-jupyterlab = "jupyter lab"
 
 # --- CUDA Feature ---
 [feature.cuda]
@@ -55,6 +49,7 @@ torch = ">=2.15.0, <3"
 lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
   "smolvla",
   "dataset",
+  "libero",
 ] }
 
 
@@ -69,9 +64,10 @@ torchcodec = "==0.10.*"
 lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
   "smolvla",
   "dataset",
+  # NOTE: lerobot is not compatible natively with macos, need to run in docker container, or on linux
 ] }
 
 
 [environments]
-default = ["macos"]
-cuda = ["cuda"]
+default = ["cuda"]
+macos = ["macos"]
