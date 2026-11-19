@@ -23,3 +23,4 @@ dist/
 # Blob Files
 outputs/*
 datasets/*
+remote-sync-folder/files/*

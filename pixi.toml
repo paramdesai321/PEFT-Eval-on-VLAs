@@ -30,6 +30,7 @@ fsspec = "<=2026.7.0"
 peft = ">=0.21.2, <0.22"
 
 
+## LOOK HERE TO SEE WHAT COMMANDS TO RUN
 [tasks]
 # Utilities
 jupyterlab = "jupyter lab"
@@ -40,7 +41,7 @@ format = "ruff format ."
 register-cuda-kernel = 'python3 -m ipykernel install --user --name="ecs-271" --display-name="Python (Pixi CUDA)"'
 
 # Runners
-test-smol-vla-peft = "python3 -m smolVLA_PEFT"
+test-smol-vla-peft-rl = "python3 -m smol-vla-peft-rl"
 test-smol-vla-peft2 = "python3 -m smolVLA_PEFT_ver2"
 
 
@@ -74,3 +75,9 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
 [environments]
 default = ["cuda"]
 macos = ["macos"]
+
+[environments.cuda]
+features =["cuda"]
+
+[environments.cuda.dependencies]
+ruff = ">=0.17.5,<0.18"
