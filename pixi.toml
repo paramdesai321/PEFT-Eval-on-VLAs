@@ -31,7 +31,6 @@ peft = ">=0.21.2, <0.22"
 
 
 [tasks]
-
 # Utilities
 jupyterlab = "jupyter lab"
 # mainly for hive machine
@@ -68,6 +67,9 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
   "dataset",
   # NOTE: lerobot is not compatible natively with macos, need to run in docker container, or on linux
 ] }
+
+[feature.dev.dependencies]
+pre-commit = "*"
 
 
 [environments]
