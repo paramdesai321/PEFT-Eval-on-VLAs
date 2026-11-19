@@ -81,7 +81,7 @@ dataloader = DataLoader(
 
 policy_input_keys = list(policy.config.input_features.keys())
 
-num_batches_iteration = 5
+NUMBER_OF_BATCHES_TO_ITERATE = 5
 mean_squared_error_losses = []
 l1_losses = []
 for step, batch in enumerate(dataloader):
@@ -133,25 +133,24 @@ for step, batch in enumerate(dataloader):
             ground_truth = ground_truth[:, : pred.shape[-1]]  # match action dim
         else:
             pred = final_actions
-
-
-
             ground_truth = ground_truth[:, : pred.shape[-1]]
 
         mean_squared_error = torch.mean((pred - ground_truth) ** 2).item()
-        l1_losses = torch.mean(torch.abs(pred - ground_truth)).item()
+        l1_loss = torch.mean(torch.abs(pred - ground_truth)).item()
         mean_squared_error_losses.append(mean_squared_error)
-        l1_losses.append(l1)
+        l1_losses.append(l1_loss)
 
     print(
-        f"Batch {step + 1} | MSE: {mse:.5f} | L1: {l1:.5f} "
+        f"Batch {step + 1} | MSE: {mean_squared_error:.5f} | L1: {l1_loss:.5f} "
         f"| running MSE: {np.mean(mean_squared_error):.5f}"
-
-
-
     )
 
-    if step >= num_batches_iteration - 1:
+    """
+    !!!!!!!!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!!!!!!!
+    PLEASE COMMENT THIS LINE TO RUN THROUHGH THE ENTIRE DATASET.
+    NUMBER_OF_BATCHES_TO_ITERATE is set to a limited number for demo purposes.
+    """
+    if step >= (NUMBER_OF_BATCHES_TO_ITERATE - 1):
         break
 
 # Inference Statistics

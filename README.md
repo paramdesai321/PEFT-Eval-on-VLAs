@@ -22,6 +22,9 @@ pixi install
 
 # Nvidia
 pixi install -e cuda
+
+# Macos M-Series
+pixi install -e macos
 ```
 
 ## Test that the project has been correctly initialized
@@ -30,17 +33,25 @@ pixi install in the root directory of the project.
 
 For Nvidia based systems, you can run the following command to test that the project has been correctly initialized:
 
+
+# Alternatively, use the mamba environment provided at:
+```bash
+environment.yml
+```
+
+## Testing Instructions
+
 ```bash
 # Pixi targets your system architecture (Macos, Linux, Linux - NVIDIA)
 
 # Test SmolVLA
-pixi -e run test-smolvla
+pixi run -e {macos,cuda} test-smolvla
 
 # Test Tensor Batching
-pixi -e run test-tensor-batching
+pixi run -e {macos,cuda} test-tensor-batching
 
 # Test Mock Action SmolVLA
-pixi -e run test-mock-action-smolvla
+pixi run -e {macos,cuda} test-mock-action-smolvla
 ```
 
 For other systems

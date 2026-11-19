@@ -33,6 +33,9 @@ peft = ">=0.21.2, <0.22"
 [tasks]
 # Utilities
 jupyterlab = "jupyter lab"
+lint = "ruff check . --fix"
+format = "ruff format ."
+
 # mainly for hive machine
 register-cuda-kernel = 'python3 -m ipykernel install --user --name="ecs-271" --display-name="Python (Pixi CUDA)"'
 
@@ -67,10 +70,6 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
   "dataset",
   # NOTE: lerobot is not compatible natively with macos, need to run in docker container, or on linux
 ] }
-
-[feature.dev.dependencies]
-pre-commit = "*"
-
 
 [environments]
 default = ["cuda"]
