@@ -78,3 +78,18 @@ else:
         f"(detected device='{DEVICE.type}', bitsandbytes={HAS_BNB}). Falling back to standard LoRA."
     )
     policy = policy.to(DEVICE)
+
+
+for param in policy.model.vlm_with_expert_parameters():
+    param.requires_grad = False
+
+lora_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    taret_modules=["q_proj","v_proj","k_proj","out_proj"]
+    lora_dropoout=0.05
+    bias="none",
+)
+
+policy.model.vlm_with_expert = get_peft_model(policy.model.vlm_with_expert, lora_config)
+
