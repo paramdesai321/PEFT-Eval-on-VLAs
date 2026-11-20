@@ -36,11 +36,11 @@ DEVICE = torch.device(
 print(f"Using device: {DEVICE}")
 
 def get_model_footprint_mb(model:nn.Module) -> float: 
-param_bytes = sum(p.numel()*p.element_size() for p in model.parameters())
-buffer_bytes = sum(b.numel()*b.element_size() for b in model.bufferes())
-return (param_bytes + buffer_bytes)/(1024**2) # converting from bytes to megabytes
+    param_bytes = sum(p.numel()*p.element_size() for p in model.parameters())
+    buffer_bytes = sum(b.numel()*b.element_size() for b in model.buffers())
+    return (param_bytes + buffer_bytes)/(1024**2) # converting from bytes to megabytes
 
-def replace_linear_with_4bit(module:nn.Module, compute_dtype=tircg.bfloat16) -> int: 
+def replace_linear_with_4bit(module:nn.Module, compute_dtype=torch.bfloat16) -> int: 
     # Recursively replaces nn.linear layers with bitsandbytes Linear4bit, all the nn.linear(K,Q,V,MLP) layers
     replaced_count = 0
     for name, child in module.named_children():
@@ -63,7 +63,7 @@ def replace_linear_with_4bit(module:nn.Module, compute_dtype=tircg.bfloat16) -> 
     return replaced_count
 
 policy = SmolVLAPolicy.from_pretrained(MODEL_ID)
-inital_mb = get_model_footprint_mb(policy)
+initial_mb = get_model_footprint_mb(policy)
 print(f"Base FP32/BF16 model footprint: {initial_mb:.2f} MB")
 
 use_qlora = (DEVICE.type == "cuda") and HAS_BNB
@@ -80,14 +80,14 @@ else:
     policy = policy.to(DEVICE)
 
 
-for param in policy.model.vlm_with_expert_parameters():
+for param in policy.model.vlm_with_expert.parameters():
     param.requires_grad = False
 
 lora_config = LoraConfig(
     r=16,
     lora_alpha=32,
-    taret_modules=["q_proj","v_proj","k_proj","out_proj"]
-    lora_dropoout=0.05
+    target_modules=["q_proj","v_proj","k_proj","out_proj"],
+    lora_dropout=0.05,
     bias="none",
 )
 
