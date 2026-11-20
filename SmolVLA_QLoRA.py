@@ -62,4 +62,19 @@ def replace_linear_with_4bit(module:nn.Module, compute_dtype=tircg.bfloat16) -> 
             replaced_count += replace_linear_with_4bit(child, compute_dytpe=compute_dtype)
     return replaced_count
 
+policy = SmolVLAPolicy.from_pretrained(MODEL_ID)
+inital_mb = get_model_footprint_mb(policy)
+print(f"Base FP32/BF16 model footprint: {initial_mb:.2f} MB")
 
+use_qlora = (DEVICE.type == "cuda") and HAS_BNB
+if use_qlora:
+    #Quantize VLM + Expert Linear layers to 4bit bit keeping action heads in 16bit(full precision)
+    num_quantized = replace_linear_with_4bit(policy.model.vlm_with_expert)
+    print(f"Replaced {num_quantized} linear laeyers with 4bit NF4")
+    policy = policy.to(DEVICE)
+else:
+    print(
+        f"[Warning] QLoRA 4-bit NF4 requires an NVIDIA CUDA GPU with bitsandbytes installed "
+        f"(detected device='{DEVICE.type}', bitsandbytes={HAS_BNB}). Falling back to standard LoRA."
+    )
+    policy = policy.to(DEVICE)
