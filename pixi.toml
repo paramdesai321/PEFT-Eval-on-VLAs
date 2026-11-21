@@ -43,6 +43,8 @@ register-cuda-kernel = 'python3 -m ipykernel install --user --name="ecs-271" --d
 # Runners
 test-smol-vla-peft-rl = "python3 -m smol-vla-peft-rl"
 test-smol-vla-peft2 = "python3 -m smolVLA_PEFT_ver2"
+test-qlora-peft = "python3 -m SmolVLA_QLoRA"
+test-qlora-peft-simul = "python3 -m SmolVLA_QLoRA_closed_loop_sim"
 
 
 # --- CUDA Feature ---
@@ -77,7 +79,7 @@ default = ["cuda"]
 macos = ["macos"]
 
 [environments.cuda]
-features =["cuda"]
+features = ["cuda"]
 
 [environments.cuda.dependencies]
 ruff = ">=0.17.5,<0.18"

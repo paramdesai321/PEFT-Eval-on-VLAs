@@ -24,3 +24,4 @@ dist/
 outputs/*
 datasets/*
 remote-sync-folder/files/*
+eval_logs/*
