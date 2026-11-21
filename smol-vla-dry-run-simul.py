@@ -10,14 +10,16 @@ from lerobot.configs.policies import PreTrainedConfig
 from lerobot.envs.configs import LiberoEnvConfig
 from lerobot.scripts.lerobot_eval import eval_main
 
-policy_cfg = PreTrainedConfig.from_pretrained("HuggingFaceVLA/smolvla_libero")
+# Policy
+MODEL_CHECKPOINT = "HuggingFaceVLA/smolvla_libero"
+policy_config = PreTrainedConfig.from_pretrained("HuggingFaceVLA/smolvla_libero")
 
-policy_cfg.num_steps = 10
-policy_cfg.n_action_steps = 10
-policy_cfg.device = "cuda"
+policy_config.num_steps = 10
+policy_config.n_action_steps = 10
+policy_config.device = "cuda"
 
 cfg = EvalPipelineConfig(
-    policy=policy_cfg,
+    policy=policy_config,
     env=LiberoEnvConfig(
         task="libero_goal",
         task_ids=[0],
