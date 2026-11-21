@@ -1,8 +1,9 @@
-name: default
+name: cuda
 channels:
 - conda-forge
 - nodefaults
 dependencies:
+- ruff >=0.17.5,<0.18
 - python 3.12.*
 - ipykernel >=6,<8
 - jupyterlab >=4,<5
@@ -19,3 +20,4 @@ dependencies:
   - torch>=2.15.0, <3
   - lerobot[smolvladatasetlibero] @ git+https://github.com/huggingface/lerobot.git@main
   - peft>=0.21.2, <0.22
+

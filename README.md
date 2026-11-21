@@ -10,6 +10,7 @@ brew install pixi
 
 # Linux Installation:
 curl -fsSL https://pixi.sh/install.sh | sh
+
 ```
 
 # Initialize Project Dependencies in Root Directory
@@ -67,4 +68,14 @@ pixi run test-tensor-batching
 
 # Test Mock Action SmolVLA
 pixi run test-mock-action-smolvla
+```
+
+
+## Generate Environment from Pixi
+```bash
+# Environment for cuda based systems (nvidia gpu with nvcc)
+pixi workspace export conda-environment -e cuda > nvidia-environment.yml
+
+# Macos
+pixi workspace export conda-environment -e macos > environment.yml
 ```
