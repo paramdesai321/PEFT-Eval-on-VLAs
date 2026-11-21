@@ -1,13 +1,13 @@
-import os
 import json
+import os
 from pathlib import Path
 
 os.environ["MUJOCO_GL"] = "egl"
 
-from lerobot.configs.policies import PreTrainedConfig
 from lerobot.configs.default import EvalConfig
-from lerobot.envs.configs import LiberoEnvConfig
 from lerobot.configs.eval import EvalPipelineConfig
+from lerobot.configs.policies import PreTrainedConfig
+from lerobot.envs.configs import LiberoEnvConfig
 from lerobot.scripts.lerobot_eval import eval_main
 
 policy_cfg = PreTrainedConfig.from_pretrained("HuggingFaceVLA/smolvla_libero")

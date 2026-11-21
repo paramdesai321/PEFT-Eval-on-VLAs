@@ -1,19 +1,16 @@
 import os
-import warnings
 import platform
-
-import numpy as np
-import torch
-import torch.nn as nn
+import warnings
 from pathlib import Path
-from lerobot.datasets.lerobot_dataset import LeRobotDataset
-from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
-from peft import LoraConfig, get_peft_model
-from torch.utils.data import DataLoader
+
+import torch
 from lerobot.envs.configs import LiberoEnvConfig
 from lerobot.envs.factory import make_env, make_env_pre_post_processors
 from lerobot.policies.factory import make_pre_post_processors
+from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
 from lerobot.scripts.lerobot_eval import eval_policy_all
+from peft import LoraConfig, get_peft_model
+from torch import nn
 
 if "MUJOCO_GL" not in os.environ:
     os.environ["MUJOCO_GL"] = "cgl" if platform.system() == "Darwin" else "egl"
