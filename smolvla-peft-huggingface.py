@@ -23,7 +23,7 @@ os.environ["PYTHONWARNINGS"] = "ignore"
 
 # Config and Device setup
 CORES = os.cpu_count()
-MODEL_ID = "lerobot/smolvla_base"
+# MODEL_ID = "lerobot/smolvla_base"
 DATASET_ID = "lerobot/libero"  # Drop-in replacement dataset
 DEVICE = torch.device(
     "cuda"
@@ -72,7 +72,7 @@ print(
 dataset = LeRobotDataset(DATASET_ID)
 preprocess, postprocess = make_pre_post_processors(
     policy.config,
-    MODEL_ID,
+    MODEL_CHECKPOINT,
     preprocessor_overrides={"device_processor": {"device": str(DEVICE)}},
 )
 # Create Dataloader
