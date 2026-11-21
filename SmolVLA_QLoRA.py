@@ -3,16 +3,16 @@ import warnings
 
 import numpy as np
 import torch
-import torch.nn as nn
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 from lerobot.policies.factory import make_pre_post_processors
 from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
 from peft import LoraConfig, get_peft_model
+from torch import nn
 from torch.utils.data import DataLoader
-
 
 try:
     import bitsandbytes as bnb
+
     HAS_BNB = True
 except ImportError:
     HAS_BNB = False
@@ -20,7 +20,7 @@ except ImportError:
 warnings.filterwarnings("ignore")
 os.environ["PYTHONWARNINGS"] = "ignore"
 
-#Config
+# Config
 MODEL_ID = "lerobot/smolvla_base"
 DATASET_ID = "lerobot/libero"
 BATCH_SIZE = 8
@@ -35,32 +35,38 @@ DEVICE = torch.device(
 )
 print(f"Using device: {DEVICE}")
 
-def get_model_footprint_mb(model:nn.Module) -> float: 
-    param_bytes = sum(p.numel()*p.element_size() for p in model.parameters())
-    buffer_bytes = sum(b.numel()*b.element_size() for b in model.buffers())
-    return (param_bytes + buffer_bytes)/(1024**2) # converting from bytes to megabytes
 
-def replace_linear_with_4bit(module:nn.Module, compute_dtype=torch.bfloat16) -> int: 
+def get_model_footprint_mb(model: nn.Module) -> float:
+    param_bytes = sum(p.numel() * p.element_size() for p in model.parameters())
+    buffer_bytes = sum(b.numel() * b.element_size() for b in model.buffers())
+    return (param_bytes + buffer_bytes) / (
+        1024**2
+    )  # converting from bytes to megabytes
+
+
+def replace_linear_with_4bit(module: nn.Module, compute_dtype=torch.bfloat16) -> int:
     # Recursively replaces nn.linear layers with bitsandbytes Linear4bit, all the nn.linear(K,Q,V,MLP) layers
     replaced_count = 0
     for name, child in module.named_children():
-        
         if isinstance(child, nn.Linear):
             quant_linear = bnb.nnLinear4bit(
                 input_features=child.in_features,
                 output_features=child.out_features,
                 bias=child.bias is not None,
                 compute_dtype=compute_dtype,
-                compress_statistics=True, # Double quantization
-                quant_type="nf4"
+                compress_statistics=True,  # Double quantization
+                quant_type="nf4",
             )
             quant_linear.load_state_dict(child.state_dict())
             setattr(module, name, quant_linear)
-            replaced_count +=1
-        
+            replaced_count += 1
+
         else:
-            replaced_count += replace_linear_with_4bit(child, compute_dytpe=compute_dtype)
+            replaced_count += replace_linear_with_4bit(
+                child, compute_dytpe=compute_dtype
+            )
     return replaced_count
+
 
 policy = SmolVLAPolicy.from_pretrained(MODEL_ID)
 initial_mb = get_model_footprint_mb(policy)
@@ -68,7 +74,7 @@ print(f"Base FP32/BF16 model footprint: {initial_mb:.2f} MB")
 
 use_qlora = (DEVICE.type == "cuda") and HAS_BNB
 if use_qlora:
-    #Quantize VLM + Expert Linear layers to 4bit bit keeping action heads in 16bit(full precision)
+    # Quantize VLM + Expert Linear layers to 4bit bit keeping action heads in 16bit(full precision)
     num_quantized = replace_linear_with_4bit(policy.model.vlm_with_expert)
     print(f"Replaced {num_quantized} linear laeyers with 4bit NF4")
     policy = policy.to(DEVICE)
@@ -86,7 +92,7 @@ for param in policy.model.vlm_with_expert.parameters():
 lora_config = LoraConfig(
     r=16,
     lora_alpha=32,
-    target_modules=["q_proj","v_proj","k_proj","out_proj"],
+    target_modules=["q_proj", "v_proj", "k_proj", "out_proj"],
     lora_dropout=0.05,
     bias="none",
 )
@@ -129,8 +135,7 @@ l1_losses = []
 
 for step, batch in enumerate(dataloader):
     device_batch = {
-        k: v.to(DEVICE) if isinstance(v, torch.Tensor) else v
-        for k, v in batch.items()
+        k: v.to(DEVICE) if isinstance(v, torch.Tensor) else v for k, v in batch.items()
     }
 
     processed_batch = {}
@@ -152,8 +157,11 @@ for step, batch in enumerate(dataloader):
     input_batch = preprocess(processed_batch)
 
     # Use bfloat16 autocast on CUDA to match Linear4bit compute_dtype
-    with torch.inference_mode(), torch.amp.autocast(
-        device_type=DEVICE.type, dtype=torch.bfloat16, enabled=use_qlora
+    with (
+        torch.inference_mode(),
+        torch.amp.autocast(
+            device_type=DEVICE.type, dtype=torch.bfloat16, enabled=use_qlora
+        ),
     ):
         raw_actions = policy.select_action(input_batch)
         final_actions = postprocess(raw_actions)
@@ -161,7 +169,11 @@ for step, batch in enumerate(dataloader):
     ground_truth_actions = batch.get("action")
     if ground_truth_actions is not None:
         ground_truth = ground_truth_actions.to(final_actions.device).float()
-        pred = final_actions[:, 0, :].float() if final_actions.ndim == 3 else final_actions.float()
+        pred = (
+            final_actions[:, 0, :].float()
+            if final_actions.ndim == 3
+            else final_actions.float()
+        )
         ground_truth = ground_truth[:, : pred.shape[-1]]
 
         mean_squared_error = torch.mean((pred - ground_truth) ** 2).item()
