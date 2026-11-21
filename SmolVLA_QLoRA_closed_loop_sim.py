@@ -1,5 +1,6 @@
 import os
 import warnings
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -15,7 +16,7 @@ import platform
 
 if "MUJOCO_GL" not in os.environ:
     os.environ["MUJOCO_GL"] = "cgl" if platform.system() == "Darwin" else "egl"
-from lerobot.envs.configs import LiberoEnvConfig
+from lerobot.envs.configs import LiberoEnv
 from lerobot.envs.factory import make_env, make_env_pre_post_processors
 from lerobot.policies.factory import make_pre_post_processors
 from lerobot.scripts.lerobot_eval import eval_policy_all
@@ -108,7 +109,7 @@ if use_qlora:
         if param.requires_grad:
             param.data = param.data.to(torch.bfloat16)
 
-env_cfg = LiberoEnvConfig(
+env_cfg = LiberoEnv(
     task="libero_spatial,libero_object,libero_goal,libero_10",
     task_ids=None,       # None = evaluate all 10 tasks per suite (40 tasks total)
     init_states=True,    # Standard fixed initial states
@@ -126,7 +127,7 @@ preprocess, postprocess = make_pre_post_processors(
     MODEL_ID,
     preprocessor_overrides={"device_processor": {"device": str(DEVICE)}},
 )
-env_preprocess, env_postprocess = make_env_pre_post_processors(env_cfg=env_cfg)
+env_preprocess, env_postprocess = make_env_pre_post_processors(env_cfg=env_cfg,policy_cfg=policy.config)
 
 # 4. Run closed-loop evaluation (10 episodes per task = 400 total rollouts)
 policy.eval()
@@ -139,7 +140,7 @@ eval_info = eval_policy_all(
     postprocessor=postprocess,
     n_episodes=10,
     max_episodes_rendered=2,
-    videos_dir="./eval_logs/qlora_videos",
+    videos_dir=Path("./eval_logs/qlora_videos"),
     start_seed=42,
 )
 
