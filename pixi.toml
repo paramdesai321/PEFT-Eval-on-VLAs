@@ -45,6 +45,7 @@ test-smol-vla-peft-rl = "python3 -m smol-vla-peft-rl"
 test-smol-vla-peft2 = "python3 -m smolVLA_PEFT_ver2"
 test-qlora-peft = "python3 -m SmolVLA_QLoRA"
 test-qlora-peft-simul = "python3 -m SmolVLA_QLoRA_closed_loop_sim"
+dryrun-simul = "python3 -m smol-vla-dry-run-simul"
 
 
 # --- CUDA Feature ---
@@ -58,6 +59,10 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
   "dataset",
   "libero",
 ] }
+
+[feature.cuda.dependencies]
+zlib-ng = ">=2.3.3,<3"
+pillow = ">=13.0.0,<14"
 
 
 # MacOS Feature
