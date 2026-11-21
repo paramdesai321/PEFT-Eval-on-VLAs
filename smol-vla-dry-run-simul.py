@@ -1,4 +1,6 @@
 import os
+import json
+from pathlib import Path
 
 os.environ["MUJOCO_GL"] = "egl"
 
@@ -9,9 +11,9 @@ from lerobot.configs.eval import EvalPipelineConfig
 from lerobot.scripts.lerobot_eval import eval_main
 
 policy_cfg = PreTrainedConfig.from_pretrained("HuggingFaceVLA/smolvla_libero")
-policy_cfg.pretrained_path = "HuggingFaceVLA/smolvla_libero"
-policy_cfg.num_steps = 10  # SmolVLA steps
-policy_cfg.n_action_steps = 10  # actions steps
+
+policy_cfg.num_steps = 10
+policy_cfg.n_action_steps = 10
 policy_cfg.device = "cuda"
 
 cfg = EvalPipelineConfig(
@@ -22,8 +24,21 @@ cfg = EvalPipelineConfig(
         init_states=True,
         hard_reset=False,
     ),
-    eval=EvalConfig(n_episodes=1, batch_size=2),
+    eval=EvalConfig(
+        n_episodes=1,
+        batch_size=1,
+    ),
 )
 
-result = eval_main(cfg)
-print(result)
+# Run evaluation
+eval_main(cfg)
+
+# Load evaluation statistics
+results_path = Path(cfg.output_dir) / "eval_info.json"
+
+with open(results_path, "r") as f:
+    eval_results = json.load(f)
+
+# Print overall statistics
+overall = eval_results["overall"]
+print(overall)
