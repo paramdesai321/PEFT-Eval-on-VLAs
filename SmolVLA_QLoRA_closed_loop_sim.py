@@ -1,7 +1,7 @@
 import os
 import warnings
 from pathlib import Path
-
+import json
 import numpy as np
 import torch
 import torch.nn as nn
@@ -31,7 +31,7 @@ warnings.filterwarnings("ignore")
 os.environ["PYTHONWARNINGS"] = "ignore"
 
 #Config
-MODEL_ID = "lerobot/smolvla_base"
+MODEL_ID = "HuggingFaceVLA/smolvla_libero"
 DATASET_ID = "lerobot/libero"
 BATCH_SIZE = 8
 NUMBER_OF_BATCHES_TO_ITERATE = 5
@@ -71,8 +71,14 @@ def replace_linear_with_4bit(module:nn.Module, compute_dtype=torch.bfloat16) -> 
         else:
             replaced_count += replace_linear_with_4bit(child, compute_dytpe=compute_dtype)
     return replaced_count
+from lerobot.policies.smolvla.configuration_smolvla import SmolVLAConfig
 
-policy = SmolVLAPolicy.from_pretrained(MODEL_ID)
+policy_cfg = SmolVLAConfig.from_pretrained(MODEL_ID)
+policy_cfg.num_steps = 10
+policy_cfg.n_action_steps = 10
+policy_cfg.device = str(DEVICE)
+
+policy = SmolVLAPolicy.from_pretrained(MODEL_ID, config=policy_cfg)
 initial_mb = get_model_footprint_mb(policy)
 print(f"Base FP32/BF16 model footprint: {initial_mb:.2f} MB")
 
@@ -109,9 +115,11 @@ if use_qlora:
         if param.requires_grad:
             param.data = param.data.to(torch.bfloat16)
 
+is_cuda = DEVICE.type== "cuda"
+
 env_cfg = LiberoEnv(
     task="libero_spatial,libero_object,libero_goal,libero_10",
-    task_ids=None,       # None = evaluate all 10 tasks per suite (40 tasks total)
+    task_ids=None if is_cuda else [0],       # None = evaluate all 10 tasks per suite (40 tasks total)
     init_states=True,    # Standard fixed initial states
     hard_reset=False,
     control_mode="relative",
@@ -124,8 +132,11 @@ envs = make_env(env_cfg, n_envs=1, use_async_envs=False)
 # 3. Create policy & environment pre/post-processors
 preprocess, postprocess = make_pre_post_processors(
     policy.config,
-    MODEL_ID,
-    preprocessor_overrides={"device_processor": {"device": str(DEVICE)}},
+    pretrained_path=MODEL_ID,
+    preprocessor_overrides={
+        "device_processor": {"device": str(DEVICE)},
+        "rename_observations_processor": {"rename_map": {}},
+    },
 )
 env_preprocess, env_postprocess = make_env_pre_post_processors(env_cfg=env_cfg,policy_cfg=policy.config)
 
@@ -138,12 +149,27 @@ eval_info = eval_policy_all(
     env_postprocessor=env_postprocess,
     preprocessor=preprocess,
     postprocessor=postprocess,
-    n_episodes=10,
+    n_episodes=10 if is_cuda else 1,
     max_episodes_rendered=2,
     videos_dir=Path("./eval_logs/qlora_videos"),
     start_seed=42,
 )
 
-print("Overall Success Rate (%):", eval_info["overall"]["pc_success"])
+import json
 
+output_dir = Path("./eval_logs")
+output_dir.mkdir(parents=True, exist_ok=True)
+results_path = output_dir / "eval_info.json"
+
+# Convert NumPy scalars/arrays returned by eval_policy_all() into standard JSON types
+with open(results_path, "w") as f:
+    json.dump(
+        eval_info,
+        f,
+        indent=4,
+        default=lambda o: o.item() if hasattr(o, "item") else o.tolist(),
+    )
+
+print(f"Saved full metrics to: {results_path}")
+print("Overall:", json.dumps(eval_info["overall"], indent=2, default=float))
 
