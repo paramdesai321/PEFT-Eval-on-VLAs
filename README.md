@@ -80,6 +80,20 @@ pixi workspace export conda-environment -e cuda > nvidia-environment.yml
 pixi workspace export conda-environment -e macos > environment.yml
 ```
 
-## How to Synchronize Hive with External Storage:
+## How to Synchronize Hive with External Storage(Box or SFTP):
 Follow the tutorial at this link
 **Link: [Data Transfer](https://docs.hpc.ucdavis.edu/data-transfer/)**
+
+```bash
+# Load rclone before usage
+module load rclone
+
+# Upload a file:
+rclone copy ./localfile.txt mybox:/BackupFolder
+
+#Download a file:
+rclone copy mybox:/BackupFolder/file.txt ./localdir
+
+# Sync a folder (mirror changes):
+rclone sync ./localdir mybox:/RemoteDir --progress
+```
