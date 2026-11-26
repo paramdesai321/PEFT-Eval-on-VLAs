@@ -47,6 +47,7 @@ test-qlora-peft = "python3 -m SmolVLA_QLoRA"
 test-qlora-peft-simul = "python3 -m SmolVLA_QLoRA_closed_loop_sim"
 dryrun-simul = "python3 -m smol-vla-dry-run-simul"
 smolvla-peft-dataset = "python3 -m smolvla-peft-huggingface"
+smolvla-lora-sp = "python3 smolVLA_LoRA-SP.py"
 
 
 # --- CUDA Feature ---
@@ -60,6 +61,10 @@ lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main",
   "dataset",
   "libero",
 ] }
+piper-sdk = ">=0.6.2, <0.7"
+pyrealsense2 = ">=2.59.2.11152, <3"
+imageio = ">=2.38.2, <3"
+bitsandbytes = ">=0.50.2, <0.51"
 
 [feature.cuda.dependencies]
 zlib-ng = ">=2.3.3,<3"
