@@ -1,0 +1,96 @@
+[workspace]
+channels = ["conda-forge"]
+name = "deep-learning-projects"
+platforms = [
+  "osx-arm64",
+  { name = "linux-64-nvidia", platform = "linux-64", cuda = "11.7.1" },
+]
+version = "0.1.0"
+[feature.macos.activation.env]
+KMP_DUPLICATE_LIB_OK = "TRUE"
+
+[dependencies]
+python = "3.12.*"
+ipykernel = ">=6,<8"
+jupyterlab = ">=4,<5"
+numpy = ">=1.26,<2.3"
+pandas = ">=2,<3"
+matplotlib = ">=3.8,<4"
+ipywidgets = ">=8.1,<9"
+pixi-kernel = ">=0.7,<0.8"
+pip = ">=26.2.2,<27"
+datetime = ">=6.0,<7"
+ffmpeg = ">=7,<=8"
+
+[constraints]
+fsspec = "<=2026.7.0"
+
+# --- Shared PyPI Dependencies ---
+[pypi-dependencies]
+peft = ">=0.21.2, <0.22"
+
+
+## LOOK HERE TO SEE WHAT COMMANDS TO RUN
+[tasks]
+# Utilities
+jupyterlab = "jupyter lab"
+lint = "ruff check . --fix"
+format = "ruff format ."
+
+# mainly for hive machine
+register-cuda-kernel = 'python3 -m ipykernel install --user --name="ecs-271" --display-name="Python (Pixi CUDA)"'
+
+# Runners
+test-smol-vla-peft-rl = "python3 -m smol-vla-peft-rl"
+test-smol-vla-peft2 = "python3 -m smolVLA_PEFT_ver2"
+test-qlora-peft = "python3 -m SmolVLA_QLoRA"
+test-qlora-peft-simul = "python3 -m SmolVLA_QLoRA_closed_loop_sim"
+dryrun-simul = "python3 -m smol-vla-dry-run-simul"
+smolvla-peft-dataset = "python3 -m smolvla-peft-huggingface"
+smolvla-lora-sp = "python3 smolVLA_LoRA-SP.py"
+
+
+# --- CUDA Feature ---
+[feature.cuda]
+platforms = ["linux-64-nvidia"]
+
+[feature.cuda.pypi-dependencies]
+torch = ">=2.15.0, <3"
+lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
+  "smolvla",
+  "dataset",
+  "libero",
+] }
+piper-sdk = ">=0.6.2, <0.7"
+pyrealsense2 = ">=2.59.2.11152, <3"
+imageio = ">=2.38.2, <3"
+bitsandbytes = ">=0.50.2, <0.51"
+
+[feature.cuda.dependencies]
+zlib-ng = ">=2.3.3,<3"
+pillow = ">=13.0.0,<14"
+
+
+# MacOS Feature
+[feature.macos]
+platforms = ["osx-arm64"]
+
+[feature.macos.pypi-dependencies]
+# torch = ">=2.10.0, <3"
+torch = "==2.10.0"
+torchcodec = "==0.10.*"
+lerobot = { git = "https://github.com/huggingface/lerobot.git", branch = "main", extras = [
+  "smolvla",
+  "dataset",
+  # NOTE: lerobot is not compatible natively with macos, need to run in docker container, or on linux
+] }
+
+[environments]
+default = ["cuda"]
+macos = ["macos"]
+
+[environments.cuda]
+features = ["cuda"]
+
+[environments.cuda.dependencies]
+ruff = ">=0.17.5,<0.18"

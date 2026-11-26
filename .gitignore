@@ -1,1 +1,27 @@
 venv/
+
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing and linting
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/*
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Blob Files
+outputs/*
+datasets/*
+remote-sync-folder/files/*
+eval_logs/*
