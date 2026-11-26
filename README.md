@@ -79,3 +79,7 @@ pixi workspace export conda-environment -e cuda > nvidia-environment.yml
 # Macos
 pixi workspace export conda-environment -e macos > environment.yml
 ```
+
+## How to Synchronize Hive with External Storage:
+Follow the tutorial at this link
+**Link: [Data Transfer](https://docs.hpc.ucdavis.edu/data-transfer/)**
