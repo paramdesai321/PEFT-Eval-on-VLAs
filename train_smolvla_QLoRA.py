@@ -24,6 +24,20 @@ WARMUP_STEPS = 500
 SAVE_EVERY_STEPS = 2500
 LOG_EVERY_STEPS = 50
 
+import sys
+
+DRY_RUN = "--dry-run" in sys.argv
+EPISODES = [0, 1, 2, 3] if DRY_RUN else None
+
+if DRY_RUN:
+    OUTPUT_DIR = Path("./outputs/smolvla_qlora_dry_run")
+    BATCH_SIZE = 4
+    GRAD_ACCUM_STEPS = 2
+    MAX_STEPS = 20
+    WARMUP_STEPS = 5
+    SAVE_EVERY_STEPS = 20
+    LOG_EVERY_STEPS = 5
+
 LORA_R = 16
 LORA_ALPHA = 32
 LORA_DROPOUT = 0.05
@@ -107,9 +121,12 @@ def main():
     policy.config.n_action_steps = 10  # Match closed-loop eval chunk execution
 
     # 2. Load LIBERO dataset with action-chunk delta timestamps
-    temp_ds = LeRobotDataset(DATASET_ID)
+    #temp_ds = LeRobotDataset(DATASET_ID)
+    #delta_timestamps = build_delta_timestamps(policy.config, temp_ds.fps)
+    #dataset = LeRobotDataset(DATASET_ID, delta_timestamps=delta_timestamps)
+    temp_ds = LeRobotDataset(DATASET_ID, episodes=EPISODES)
     delta_timestamps = build_delta_timestamps(policy.config, temp_ds.fps)
-    dataset = LeRobotDataset(DATASET_ID, delta_timestamps=delta_timestamps)
+    dataset = LeRobotDataset(DATASET_ID, episodes=EPISODES, delta_timestamps=delta_timestamps)
 
     # 3. Build preprocessor/postprocessor using LIBERO dataset statistics
     preprocess, postprocess = make_pre_post_processors(
@@ -118,3 +135,100 @@ def main():
         dataset_stats=dataset.meta.stats,
         preprocessor_overrides={"device_processor": {"device": str(device)}},
     )
+    print("Quantizing backbone Linear layers to 4-bit NF4...")
+        replace_linear_with_4bit(policy, skip_prefixes=TRAINABLE_HEAD_PREFIXES)
+
+        # 5. Freeze base parameters, inject LoRA into VLM + Action Expert, unfreeze I/O heads
+        for param in policy.parameters():
+            param.requires_grad = False
+
+        lora_config = LoraConfig(
+            r=LORA_R,
+            lora_alpha=LORA_ALPHA,
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+            lora_dropout=LORA_DROPOUT,
+            bias="none",
+            task_type=TaskType.FEATURE_EXTRACTION,
+        )
+        policy.model.vlm_with_expert = get_peft_model(policy.model.vlm_with_expert, lora_config)
+
+        for name, param in policy.named_parameters():
+            if any(name.startswith(p) for p in TRAINABLE_HEAD_PREFIXES):
+                param.data = param.data.to(torch.bfloat16)
+                param.requires_grad = True
+
+        policy.to(device)
+        policy.model.vlm_with_expert.print_trainable_parameters()
+
+        # 6. Optimizer & cosine LR schedule
+        trainable_params = [p for p in policy.parameters() if p.requires_grad]
+        optimizer = torch.optim.AdamW(trainable_params, lr=LEARNING_RATE, weight_decay=1e-4)
+
+        def lr_lambda(step: int):
+            if step < WARMUP_STEPS:
+                return float(step + 1) / float(max(1, WARMUP_STEPS))
+            progress = float(step - WARMUP_STEPS) / float(max(1, MAX_STEPS - WARMUP_STEPS))
+            return max(0.1, 0.5 * (1.0 + math.cos(math.pi * progress)))
+
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=BATCH_SIZE,
+            shuffle=True,
+            num_workers=4,
+            pin_memory=True,
+            drop_last=True,
+        )
+
+        # 7. Training loop
+        policy.train()
+        optimizer.zero_grad()
+        opt_step = 0
+        micro_step = 0
+        running_loss = 0.0
+
+        print(f"Starting QLoRA training for {MAX_STEPS} optimizer steps...")
+        while opt_step < MAX_STEPS:
+            for raw_batch in dataloader:
+                batch = preprocess(raw_batch)
+
+                with torch.amp.autocast("cuda", dtype=torch.bfloat16):
+                    loss, _ = policy.forward(batch)
+                    scaled_loss = loss / GRAD_ACCUM_STEPS
+
+                scaled_loss.backward()
+                running_loss += loss.item()
+                micro_step += 1
+
+                if micro_step % GRAD_ACCUM_STEPS == 0:
+                    torch.nn.utils.clip_grad_norm_(trainable_params, max_norm=1.0)
+                    optimizer.step()
+                    scheduler.step()
+                    optimizer.zero_grad()
+                    opt_step += 1
+
+                    if opt_step % LOG_EVERY_STEPS == 0:
+                        avg_loss = running_loss / (LOG_EVERY_STEPS * GRAD_ACCUM_STEPS)
+                        vram_gb = torch.cuda.max_memory_allocated(device) / (1024**3)
+                        print(
+                            f"Step {opt_step}/{MAX_STEPS} | "
+                            f"Flow-Matching Loss: {avg_loss:.4f} | "
+                            f"LR: {scheduler.get_last_lr()[0]:.2e} | "
+                            f"Peak VRAM: {vram_gb:.2f} GB"
+                        )
+                        running_loss = 0.0
+
+                    if opt_step % SAVE_EVERY_STEPS == 0:
+                        save_qlora_checkpoint(
+                            policy, preprocess, postprocess, OUTPUT_DIR / f"step_{opt_step}"
+                        )
+
+                    if opt_step >= MAX_STEPS:
+                        break
+
+        save_qlora_checkpoint(policy, preprocess, postprocess, OUTPUT_DIR / "checkpoint_final")
+
+
+    if __name__ == "__main__":
+        main()
