@@ -1,28 +1,24 @@
+import json
 import os
+import platform
 import warnings
 from pathlib import Path
-import json
-import numpy as np
+
 import torch
-import torch.nn as nn
-from lerobot.datasets.lerobot_dataset import LeRobotDataset
 from lerobot.policies.factory import make_pre_post_processors
 from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
 from peft import LoraConfig, get_peft_model
-from torch.utils.data import DataLoader
-import os
-import os
-import platform
+from torch import nn
 
 if "MUJOCO_GL" not in os.environ:
     os.environ["MUJOCO_GL"] = "cgl" if platform.system() == "Darwin" else "egl"
 from lerobot.envs.configs import LiberoEnv
 from lerobot.envs.factory import make_env, make_env_pre_post_processors
-from lerobot.policies.factory import make_pre_post_processors
 from lerobot.scripts.lerobot_eval import eval_policy_all
 
 try:
     import bitsandbytes as bnb
+
     HAS_BNB = True
 except ImportError:
     HAS_BNB = False
@@ -30,7 +26,7 @@ except ImportError:
 warnings.filterwarnings("ignore")
 os.environ["PYTHONWARNINGS"] = "ignore"
 
-#Config
+# Config
 MODEL_ID = "HuggingFaceVLA/smolvla_libero"
 DATASET_ID = "lerobot/libero"
 BATCH_SIZE = 8
@@ -45,32 +41,39 @@ DEVICE = torch.device(
 )
 print(f"Using device: {DEVICE}")
 
-def get_model_footprint_mb(model:nn.Module) -> float: 
-    param_bytes = sum(p.numel()*p.element_size() for p in model.parameters())
-    buffer_bytes = sum(b.numel()*b.element_size() for b in model.buffers())
-    return (param_bytes + buffer_bytes)/(1024**2) # converting from bytes to megabytes
 
-def replace_linear_with_4bit(module:nn.Module, compute_dtype=torch.bfloat16) -> int: 
+def get_model_footprint_mb(model: nn.Module) -> float:
+    param_bytes = sum(p.numel() * p.element_size() for p in model.parameters())
+    buffer_bytes = sum(b.numel() * b.element_size() for b in model.buffers())
+    return (param_bytes + buffer_bytes) / (
+        1024**2
+    )  # converting from bytes to megabytes
+
+
+def replace_linear_with_4bit(module: nn.Module, compute_dtype=torch.bfloat16) -> int:
     # Recursively replaces nn.linear layers with bitsandbytes Linear4bit, all the nn.linear(K,Q,V,MLP) layers
     replaced_count = 0
     for name, child in module.named_children():
-        
         if isinstance(child, nn.Linear):
             quant_linear = bnb.nnLinear4bit(
                 input_features=child.in_features,
                 output_features=child.out_features,
                 bias=child.bias is not None,
                 compute_dtype=compute_dtype,
-                compress_statistics=True, # Double quantization
-                quant_type="nf4"
+                compress_statistics=True,  # Double quantization
+                quant_type="nf4",
             )
             quant_linear.load_state_dict(child.state_dict())
             setattr(module, name, quant_linear)
-            replaced_count +=1
-        
+            replaced_count += 1
+
         else:
-            replaced_count += replace_linear_with_4bit(child, compute_dytpe=compute_dtype)
+            replaced_count += replace_linear_with_4bit(
+                child, compute_dytpe=compute_dtype
+            )
     return replaced_count
+
+
 from lerobot.policies.smolvla.configuration_smolvla import SmolVLAConfig
 
 policy_cfg = SmolVLAConfig.from_pretrained(MODEL_ID)
@@ -84,7 +87,7 @@ print(f"Base FP32/BF16 model footprint: {initial_mb:.2f} MB")
 
 use_qlora = (DEVICE.type == "cuda") and HAS_BNB
 if use_qlora:
-    #Quantize VLM + Expert Linear layers to 4bit bit keeping action heads in 16bit(full precision)
+    # Quantize VLM + Expert Linear layers to 4bit bit keeping action heads in 16bit(full precision)
     num_quantized = replace_linear_with_4bit(policy.model.vlm_with_expert)
     print(f"Replaced {num_quantized} linear laeyers with 4bit NF4")
     policy = policy.to(DEVICE)
@@ -102,7 +105,7 @@ for param in policy.model.vlm_with_expert.parameters():
 lora_config = LoraConfig(
     r=16,
     lora_alpha=32,
-    target_modules=["q_proj","v_proj","k_proj","out_proj"],
+    target_modules=["q_proj", "v_proj", "k_proj", "out_proj"],
     lora_dropout=0.05,
     bias="none",
 )
@@ -115,12 +118,14 @@ if use_qlora:
         if param.requires_grad:
             param.data = param.data.to(torch.bfloat16)
 
-is_cuda = DEVICE.type== "cuda"
+is_cuda = DEVICE.type == "cuda"
 
 env_cfg = LiberoEnv(
     task="libero_spatial,libero_object,libero_goal,libero_10",
-    task_ids=None if is_cuda else [0],       # None = evaluate all 10 tasks per suite (40 tasks total)
-    init_states=True,    # Standard fixed initial states
+    task_ids=None
+    if is_cuda
+    else [0],  # None = evaluate all 10 tasks per suite (40 tasks total)
+    init_states=True,  # Standard fixed initial states
     hard_reset=False,
     control_mode="relative",
 )
@@ -138,7 +143,9 @@ preprocess, postprocess = make_pre_post_processors(
         "rename_observations_processor": {"rename_map": {}},
     },
 )
-env_preprocess, env_postprocess = make_env_pre_post_processors(env_cfg=env_cfg,policy_cfg=policy.config)
+env_preprocess, env_postprocess = make_env_pre_post_processors(
+    env_cfg=env_cfg, policy_cfg=policy.config
+)
 
 # 4. Run closed-loop evaluation (10 episodes per task = 400 total rollouts)
 policy.eval()
@@ -155,7 +162,6 @@ eval_info = eval_policy_all(
     start_seed=42,
 )
 
-import json
 
 output_dir = Path("./eval_logs")
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -172,4 +178,3 @@ with open(results_path, "w") as f:
 
 print(f"Saved full metrics to: {results_path}")
 print("Overall:", json.dumps(eval_info["overall"], indent=2, default=float))
-

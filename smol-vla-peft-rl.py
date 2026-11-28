@@ -1,14 +1,10 @@
 import os
 import warnings
 
-import numpy as np
 import torch
-from lerobot.policies.factory import make_pre_post_processors
+from lerobot.envs.configs import LiberoEnvConfig
 from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
 from peft import LoraConfig, get_peft_model
-from torch.utils.data import DataLoader
-from lerobot.envs.configs import LiberoEnvConfig
-from lerobot.envs.factory import make_env, make_env_pre_post_processors
 
 warnings.filterwarnings("ignore")
 os.environ["PYTHONWARNINGS"] = "ignore"
