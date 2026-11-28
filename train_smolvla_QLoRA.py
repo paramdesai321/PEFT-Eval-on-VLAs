@@ -60,6 +60,7 @@ def replace_linear_with_4bit(
         if any(full_name.startswith(p) for p in skip_prefixes):
             continue
 
+        # only quantize linear layer modules
         if isinstance(child, nn.Linear):
             in_features = child.in_features
             out_features = child.out_features
@@ -91,6 +92,7 @@ def replace_linear_with_4bit(
 
             setattr(module, name, newly_quantized_layer)
 
+        # recursively inspect child features
         else:
             replace_linear_with_4bit(child, skip_prefixes, full_name)
 
