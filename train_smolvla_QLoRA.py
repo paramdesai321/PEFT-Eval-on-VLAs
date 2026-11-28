@@ -54,32 +54,43 @@ TRAINABLE_HEAD_PREFIXES = (
 def replace_linear_with_4bit(
     module: nn.Module, skip_prefixes: tuple[str, ...], prefix: str = ""
 ):
-    for name, child in module.named_children():
+    for name, child in list(module.named_children()):
         full_name = f"{prefix}.{name}" if prefix else name
+
         if any(full_name.startswith(p) for p in skip_prefixes):
             continue
+
         if isinstance(child, nn.Linear):
             in_features = child.in_features
             out_features = child.out_features
             has_bias = child.bias is not None
+            quant_storage = child.weight.dtype
 
-            new_layer = bnb.nn.Linear4bit(
-                in_features,
-                out_features,
+            newly_quantized_layer = bnb.nn.Linear4bit(
+                input_features=in_features,
+                output_features=out_features,
                 bias=has_bias,
-                compute_dtype=torch.bfloat16,
-                compress_statistics=True,
+                compute_dtype=child.weight.dtype,
                 quant_type="nf4",
+                quant_storage=quant_storage,
             )
-            new_layer.weight = bnb.nn.Params4bit(
-                child.weight.data.cpu(),
+
+            newly_quantized_layer.weight = bnb.nn.Params4bit(
+                child.weight.detach().clone(),
                 requires_grad=False,
                 compress_statistics=True,
                 quant_type="nf4",
+                quant_storage=quant_storage,
             )
+
             if has_bias:
-                new_layer.bias = nn.Parameter(child.bias.data.to(torch.bfloat16))
-            setattr(module, name, new_layer)
+                newly_quantized_layer.bias = nn.Parameter(
+                    child.bias.detach().clone(),
+                    requires_grad=child.bias.requires_grad,
+                )
+
+            setattr(module, name, newly_quantized_layer)
+
         else:
             replace_linear_with_4bit(child, skip_prefixes, full_name)
 
@@ -270,6 +281,12 @@ def main():
 
                 if opt_step >= MAX_STEPS:
                     break
+
+            # Debugging
+            print(
+                f"micro_step={micro_step}, opt_step={opt_step}, loss={loss.item():.4f}",
+                flush=True,
+            )
 
     save_qlora_checkpoint(
         policy, preprocess, postprocess, OUTPUT_DIR / "checkpoint_final"
