@@ -6,7 +6,7 @@ import sys
 import bitsandbytes as bnb
 import torch
 import torch.nn as nn
-from peft import LoraConfig, TaskType, get_peft_model
+from peft import LoraConfig, TaskType, get_peft_model, PeftModel
 from torch.utils.data import DataLoader
 
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
@@ -24,11 +24,6 @@ LEARNING_RATE = 1e-4  # Standard LoRA/QLoRA LR (10x higher than full fine-tuning
 WARMUP_STEPS = 500
 SAVE_EVERY_STEPS = 2500
 LOG_EVERY_STEPS = 50
-
-RENAME_MAP = {
-    "observation.images.image": "observation.images.camera1",
-    "observation.images.image2": "observation.images.camera2",
-}
 
 DRY_RUN = "--dry-run" in sys.argv
 EPISODES = [0, 1, 2, 3] if DRY_RUN else None
@@ -183,7 +178,7 @@ def main():
         ],
         lora_dropout=LORA_DROPOUT,
         bias="none",
-        task_type=TaskType.FEATURE_EXTRACTION,
+        # task_type=TaskType.FEATURE_EXTRACTION, LETS SEE WHAT HAPPENS
     )
     policy.model.vlm_with_expert = get_peft_model(
         policy.model.vlm_with_expert, lora_config
@@ -224,6 +219,10 @@ def main():
     opt_step = 0
     micro_step = 0
     running_loss = 0.0
+    RENAME_MAP = {
+        "observation.images.image": "observation.images.camera1",
+        "observation.images.image2": "observation.images.camera2",
+    }
 
     print(f"Starting QLoRA training for {MAX_STEPS} optimizer steps...")
     while opt_step < MAX_STEPS:
